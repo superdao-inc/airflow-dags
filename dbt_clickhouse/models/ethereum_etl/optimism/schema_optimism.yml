@@ -1,0 +1,48 @@
+version: 2
+
+sources:
+  - name: buf_raw_data_optimism
+    schema: raw_data_optimism
+    tags: ["buf_raw_data_optimism"]
+
+    tables:
+      - name: buf_optimism_etl_blocks
+        columns:
+          - name: number
+            tests:
+              - not_null
+
+      - name: buf_optimism_etl_contracts
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+      - name: buf_optimism_etl_logs
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_optimism_etl_receipts
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_optimism_etl_token_transfers
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_optimism_etl_traces
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_optimism_etl_transactions
+        columns:
+          - name: block_number
+            tests:
+              - not_null

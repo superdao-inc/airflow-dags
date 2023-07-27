@@ -1,0 +1,51 @@
+version: 2
+
+sources:
+
+  - name: erc_1155
+    schema: raw_data_stage
+    tags: ['erc-1155']
+
+    tables:
+      - name: token_transfers_w_erc1155_tmp
+        columns:
+          - name: token_address
+          - name: from_address
+          - name: to_address
+          - name: value
+          - name: token_id
+          - name: transaction_hash
+          - name: log_index
+          - name: block_number
+
+      - name: token_transfers_w_erc1155
+        columns:
+          - name: token_address
+          - name: from_address
+          - name: to_address
+          - name: value
+          - name: token_id
+          - name: transaction_hash
+          - name: log_index
+          - name: block_number
+
+      - name: polygon_token_transfers_w_erc1155
+        columns:
+          - name: token_address
+          - name: from_address
+          - name: to_address
+          - name: value
+          - name: token_id
+          - name: transaction_hash
+          - name: log_index
+          - name: block_number
+
+models:
+  - name: polygon_wallet_tokens_erc_1155
+    config:
+      tags: ['parallel', 'erc-1155']
+
+  - name: polygon_token_holders_erc_1155
+    config:
+      tags: ['parallel', 'erc-1155']
+

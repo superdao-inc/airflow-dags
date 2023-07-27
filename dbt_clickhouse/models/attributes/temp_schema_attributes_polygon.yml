@@ -1,0 +1,149 @@
+version: 2
+
+sources:
+
+  - name: attributes_to_psql_polygon
+    tags: ['attributes_to_psql']
+    schema: polygon_data
+
+    tables:
+      - name: attr_created_at
+        tests:
+          - row_count:
+              above: 30*1000*1000
+        columns:
+          - name: address
+            tests:
+              - not_null
+              - unique
+              - test_starts_with_0x
+          - name: created_at
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: ">= toDate('2020-05-30')"
+          - name: updated
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: ">= yesterday()"
+                  tags: [ 'attribute_updated' ]
+
+
+      - name: attr_labels
+        tags: ['attr_labels']
+        columns:
+          - name: address
+            tests:
+              - not_null
+              - unique
+              - test_starts_with_0x
+          - name: updated
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: ">= yesterday()"
+                  tags: [ 'attribute_updated' ]
+          - name: labels
+            tests:
+              - not_null
+              - test_attr_ens_label:
+                  compare_with_table: source('off_chain', 'attr_ens_name')
+              - test_attr_whale_label:
+                  compare_with_table: source('eth_data', 'attr_wallet_usd_cap')
+              - test_attr_influencer_label:
+                  compare_with_table: source('off_chain', 'attr_twitter_followers_count')
+                  compare_with_column: twitter_followers_count
+
+      - name: attr_last_month_tx_count
+        columns:
+          - name: address
+            tests:
+              - not_null
+              - unique
+              - test_starts_with_0x
+          - name: updated
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: ">= yesterday()"
+                  tags: ['attribute_updated']
+
+          - name: last_month_tx_count
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+
+      - name: attr_tx_count
+        columns:
+          - name: address
+            tests:
+              - not_null
+              - unique
+              - test_starts_with_0x
+          - name: updated
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: ">= yesterday()"
+                  tags: ['attribute_updated']
+
+          - name: tx_count
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+
+
+
+      - name: attr_wallet_usd_cap
+        columns:
+          - name: address
+            tests:
+              - not_null
+              - unique
+              - test_starts_with_0x:
+                  config:
+                    error_if: ">2"
+          - name: updated
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: ">= yesterday()"
+                  tags: ['attribute_updated']
+
+          - name: wallet_usd_cap
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  inclusive: true
+                  config:
+                    where: "address <> '0x0000000000000000000000000000000000000000'"
+                    error_if: ">10"
+
+
+
+
+      - name: wallet_score
+        columns:
+          - name: wallet
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: updated
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: ">= yesterday()"
+                  tags: ['attribute_updated']
+
+          - name: score
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  inclusive: true
+          - name: score_id
+            tests:
+              - not_null
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              combination_of_columns:
+                - wallet
+                - score_id

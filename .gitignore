@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+
+.DS_Store
+.vscode
+.idea
+venv
+.env
+lopson_test/
+deployment/local/dags
+deployment/local/logs
+deployment/local/plugins
+ipynb/
+
+docker-compose.yml
+
+# ignore python "latest" folders
+**/latest

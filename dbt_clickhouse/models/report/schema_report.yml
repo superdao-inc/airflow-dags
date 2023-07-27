@@ -1,0 +1,91 @@
+version: 2
+
+models:
+  - name: report_wallet_nfts_count
+    tests:
+      - row_count:
+          above: 2 * 1000 * 1000
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - unique
+      - name: nfts_count
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: report_wallet_usd_cap
+    tests:
+      - row_count:
+          above: 2 * 1000 * 1000
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - unique
+      - name: wallet_usd_cap
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: report_last_month_tx_count
+    tests:
+      - row_count:
+          above: 8 * 1000 * 1000
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - unique
+      - name: last_month_tx_count
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+  - name: report_last_month_out_volume
+    tests:
+      - row_count:
+          above: 7 * 1000 * 1000
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - unique
+      - name: last_month_out_volume
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+  - name: report_erc20_token_last_30d_transfers
+    tests:
+      - row_count:
+          above: 1
+  - name: report_stablecoins_token_last_30d_transfers
+    tests:
+      - row_count:
+          above: 1
+
+  - name: report_top_defi_projects
+  - name: report_activated_wallets
+    tests:
+      - row_count:
+          above: 340 * 1000 * 1000
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - unique
+          - dbt_utils.not_empty_string
+
+  - name: report_largest_nft_collections
+    columns:
+      - name: token_address
+        tests:
+          - not_null
+          - test_starts_with_0x
+      - name: holders_count
+      - name: holders_with_balance_100_or_more
+      - name: holders_with_tx_count_greater_than_0

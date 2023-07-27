@@ -1,0 +1,941 @@
+version: 2
+
+models:
+  - name: off_chain_twitters_meta
+    tests:
+      - row_count:
+          above: 0
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+          - unique
+      - name: twitter_url
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: twitter_avatar_url
+      - name: twitter_username
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: twitter_followers_count
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: twitter_location
+      - name: twitter_bio
+
+  - name: tmp_ens_holders
+  - name: tmp_eth_nft_hunters
+    tests:
+      - row_count:
+          above: 2_000
+          below: 10_000
+  - name: tmp_polygon_nft_hunters
+    tests:
+      - row_count:
+          above: 3_000
+          below: 10_000
+  - name: tmp_eth_nonhuman_addresses
+    tests:
+      - row_count:
+          above: 1_000
+          below: 10_000
+  - name: tmp_polygon_nonhuman_addresses
+    tests:
+      - row_count:
+          above: 2_000
+          below: 10_000
+  - name: tmp_all_chains_nft_trader
+    tests:
+      - row_count:
+          above: 10_000
+          below: 200_000
+  - name: tmp_eth_label_whale
+    tests:
+      - row_count:
+          above: 50_000
+          below: 200_000
+  - name: tmp_eth_label_voter
+    tests:
+      - row_count:
+          above: 1_000_000
+          below: 4_000_000
+  - name: tmp_polygon_label_voter
+    tests:
+      - row_count:
+          above: 1_000_000
+          below: 4_000_000
+  - name: tmp_polygon_label_whale
+    tests:
+      - row_count:
+          above: 1_000
+          below: 4_000
+  - name: tmp_eth_label_influencer
+    tests:
+      - row_count:
+          above: 10_000
+          below: 40_000
+  - name: tmp_polygon_label_influencer
+    tests:
+      - row_count:
+          above: 10_000
+          below: 40_000
+  - name: tmp_eth_label_early_adopters
+    tests:
+      - row_count:
+          above: 350_000
+          below: 1_200_000
+  - name: tmp_polygon_label_early_adopters
+    tests:
+      - row_count:
+          above: 200_000
+          below: 800_000
+  - name: tmp_eth_label_developers
+    tests:
+      - row_count:
+          above: 100_000
+          below: 400_000
+  - name: tmp_polygon_label_developers
+    tests:
+      - row_count:
+          above: 0
+  - name: tmp_eth_label_culture_art
+    tests:
+      - row_count:
+          above: 35_000
+          below: 250_000
+  - name: tmp_polygon_label_culture_art # 0
+  - name: tmp_eth_label_culture_fashion
+    tests:
+      - row_count:
+          above: 10_000
+          below: 40_000
+  - name: tmp_polygon_label_culture_fashion
+    tests:
+      - row_count:
+          above: 3_500
+          below: 14_000
+  - name: tmp_eth_label_culture_luxury
+    tests:
+      - row_count:
+          above: 30_000
+          below: 120_000
+  - name: tmp_polygon_label_culture_luxury # 0
+  - name: tmp_eth_label_culture_music
+    tests:
+      - row_count:
+          above: 20_000
+          below: 80_000
+  - name: tmp_polygon_label_culture_music
+    tests:
+      - row_count:
+          above: 1_000
+          below: 10_000
+  - name: tmp_eth_label_gaming
+    tests:
+      - row_count:
+          above: 50_000
+          below: 200_000
+  - name: tmp_polygon_label_gaming
+    tests:
+      - row_count:
+          above: 30_000
+          below: 120_000
+  - name: tmp_eth_label_defi
+    tests:
+      - row_count:
+          above: 100_000
+          below: 400_000
+  - name: tmp_polygon_label_defi # ~0
+  - name: tmp_eth_label_donor
+    tests:
+      - row_count:
+          above: 20_000
+          below: 80_000
+  - name: tmp_polygon_label_donor
+    tests:
+      - row_count:
+          above: 3_500
+          below: 12_000
+  - name: tmp_eth_label_investor
+    tests:
+      - row_count:
+          above: 120_000
+          below: 480_000
+  - name: tmp_polygon_label_investor # 0
+
+  - name: off_chain_attr_twitter_username
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - twitter_username
+  - name: off_chain_attr_twitter_url
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - twitter_url
+  - name: off_chain_attr_twitter_followers_count
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - twitter_followers_count
+  - name: off_chain_attr_twitter_location
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - twitter_location
+  - name: off_chain_attr_twitter_bio
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - twitter_bio
+  - name: off_chain_attr_twitter_avatar_url
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - twitter_avatar_url
+  
+  - name: eth_attr_nfts_count
+    description: Table for total NFT count per wallet
+    tags: ['nft']
+    meta:
+      dag_name: eth_attr_nfts_count
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "nfts_count > 0"
+      - dbt_utils.expression_is_true:
+          expression: "updated > toDate('2023-03-01')"
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - unique
+      - name: nfts_count
+        tests:
+          - not_null
+      - name: updated
+        tests:
+          - not_null
+
+  - name: polygon_attr_nfts_count
+    description: Table for total NFT count per wallet
+    tags: ['nft']
+    meta:
+      dag_name: polygon_attr_nfts_count
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "nfts_count > 0"
+      - dbt_utils.expression_is_true:
+          expression: "updated > toDate('2023-03-01')"
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - unique
+      - name: nfts_count
+        tests:
+          - not_null
+      - name: updated
+        tests:
+          - not_null
+
+  - name: attr_ens_name
+    tags: ['ens']
+    meta:
+      dag_name: attr_ens_name
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - unique
+      - name: ens_name
+        tests:
+          - not_null
+          - unique
+
+  - name: attr_superdao_emails
+    tags: ['superdao', 'email']
+    tests:
+      - row_count:
+          above: 200*1000
+      - dbt_utils.expression_is_true:
+          expression: "email <> ''"
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - unique
+      - name: email
+        tests:
+          - not_null
+      - name: updated
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              max_value: "now()"
+
+  - name: eth_attr_created_at
+    description: Table with the creation date of the ethereum wallets
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - created_at
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: created_at
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1438918233
+              max_value: "now()"
+
+  - name: polygon_attr_created_at
+    description: Table with the creation date of the polygon wallets
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - created_at
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: created_at
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1590857116
+              max_value: "now()"
+
+  - name: eth_attr_last_month_tx_count
+    description: Table with the last month transaction count of the ethereum wallets
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - last_month_tx_count
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: last_month_tx_count
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: polygon_attr_last_month_tx_count
+    description: Table with the last month transaction count of the polygon wallets
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - last_month_tx_count
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: last_month_tx_count
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: tmp_eth_attr_whitelist_activity
+    description: Table with the whitelist activity of the ethereum wallets
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - updated
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: whitelist_activity
+        tests:
+          - not_null
+      - name: updated
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              max_value: "now()"
+
+  - name: tmp_polygon_attr_whitelist_activity
+    description: Table with the whitelist activity of the ethereum wallets
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - updated
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: whitelist_activity
+        tests:
+          - not_null
+      - name: updated
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              max_value: "now()"
+
+  - name: eth_last_month_dai_credits
+    description: Table with the last month dai credits of the ethereum wallets
+    tags: ['eth', 'stablecoins', 'dai']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - value
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: eth_last_month_dai_debits
+    description: Table with the last month dai debits of the ethereum wallets
+    tags: ['eth', 'stablecoins', 'dai']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - value
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: eth_last_month_usdc_credits
+    description: Table with the last month usdc credits of the ethereum wallets
+    tags: ['eth', 'stablecoins', 'usdc']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - value
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: eth_last_month_usdc_debits
+    description: Table with the last month usdc debits of the ethereum wallets
+    tags: ['eth', 'stablecoins', 'usdc']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - value
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: eth_last_month_usdt_credits
+    description: Table with the last month usdt credits of the ethereum wallets
+    tags: ['eth', 'stablecoins', 'usdt']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - value
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: eth_last_month_usdt_debits
+    description: Table with the last month usdt debits of the ethereum wallets
+    tags: ['eth', 'stablecoins', 'usdt']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - value
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: eth_last_month_native_transfers
+    description: Table with the last month native transfers of the ethereum wallets
+    tags: ['eth', 'transfers', 'native']
+    tests:
+      - row_count:
+          above: 0
+    columns:
+      - name: from_address
+        tests:
+          - not_null
+      - name: to_address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+  
+  - name: eth_last_month_native_tx_credits
+    description: Table with the last month native transactions credits
+    tags: ['eth', 'credits', 'native']
+    tests:
+      - row_count:
+          above: 0
+    columns:
+      - name: address
+        tests:
+          - not_null
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+  
+  - name: eth_last_month_native_tx_debits
+    description: Table with the last month native transactions debits
+    tags: ['eth', 'debits', 'native']
+    tests:
+      - row_count:
+          above: 0
+    columns:
+      - name: address
+        tests:
+          - not_null
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: eth_last_month_native_fee_credits
+    description: Table with the last month native fee credits
+    tags: ['eth', 'fee_credits', 'native']
+    tests:
+      - row_count:
+          above: 0
+    columns:
+      - name: address
+        tests:
+          - not_null
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+  
+  - name: eth_last_month_native_fee_debits
+    description: Table with the last month native fee debits
+    tags: ['eth', 'fee_debits', 'native']
+    tests:
+      - row_count:
+          above: 0
+    columns:
+      - name: address
+        tests:
+          - not_null
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: eth_last_month_native_credits
+    description: Table with the last month native credits
+    tags: ['eth', 'balance', 'native']
+    tests:
+      - row_count:
+          above: 0
+    columns:
+      - name: address
+        tests:
+          - not_null
+      - name: value
+        tests:
+          - not_null
+  
+  - name: eth_last_month_native_debits
+    description: Table with the last month native debits
+    tags: ['eth', 'balance', 'native']
+    tests:
+      - row_count:
+          above: 0
+    columns:
+      - name: address
+        tests:
+          - not_null
+      - name: value
+        tests:
+          - not_null
+
+  - name: eth_attr_last_month_in_volume
+    description: Table with the last month in volume of the ethereum wallets
+    tags: ['eth', 'volume']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - last_month_in_volume
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: last_month_in_volume
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: eth_attr_last_month_out_volume
+    description: Table with the last month in volume of the ethereum wallets
+    tags: ['eth', 'volume']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - last_month_out_volume
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: last_month_out_volume
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: polygon_last_month_dai_credits
+    description: Table with the last month dai credits of the polygon wallets
+    tags: ['polygon', 'stablecoins', 'dai']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - value
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: polygon_last_month_dai_debits
+    description: Table with the last month dai debits of the polygon wallets
+    tags: ['polygon', 'stablecoins', 'dai']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - value
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: polygon_last_month_usdc_credits
+    description: Table with the last month usdc credits of the polygon wallets
+    tags: ['polygon', 'stablecoins', 'usdc']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - value
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: polygon_last_month_usdc_debits
+    description: Table with the last month usdc debits of the polygon wallets
+    tags: ['polygon', 'stablecoins', 'usdc']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - value
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: polygon_last_month_usdt_credits
+    description: Table with the last month usdt credits of the polygon wallets
+    tags: ['polygon', 'stablecoins', 'usdt']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - value
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: polygon_last_month_usdt_debits
+    description: Table with the last month usdt debits of the polygon wallets
+    tags: ['polygon', 'stablecoins', 'usdt']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - value
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: value
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: polygon_attr_last_month_in_volume
+    description: Table with the last month in volume of the polygon wallets
+    tags: ['polygon', 'volume']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - last_month_in_volume
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: last_month_in_volume
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: polygon_attr_last_month_out_volume
+    description: Table with the last month in volume of the polygon wallets
+    tags: ['polygon', 'volume']
+    tests:
+      - row_count:
+          above: 0
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - address
+            - last_month_out_volume
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+      - name: last_month_out_volume
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+
+  - name: polygon_attr_wallet_usd_cap
+    description: Usd cap attributes by a list of stablecoins
+    tests:
+      - row_count:
+          above: 1000*1000
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+          - unique
+          - test_starts_with_0x
+      - name: wallet_usd_cap
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+
+  - name: eth_attr_wallet_usd_cap
+    description: Usd cap attributes by a list of stablecoins
+    tests:
+      - row_count:
+          above: 1000*1000
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+          - unique
+          - test_starts_with_0x
+      - name: wallet_usd_cap
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: eth_attr_tx_count
+    tests:
+      - row_count:
+          above: 160 * 1000 * 1000
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+          - unique
+          - test_starts_with_0x
+      - name: tx_count
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: polygon_attr_tx_count
+    tests:
+      - row_count:
+          above: 39 * 1000 * 1000
+    columns:
+      - name: address
+        tests:
+          - not_null
+          - dbt_utils.not_empty_string
+          - unique
+          - test_starts_with_0x
+      - name: tx_count
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0

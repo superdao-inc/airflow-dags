@@ -1,0 +1,95 @@
+version: 2
+
+sources:
+  - name: audiences
+    schema: off_chain
+    tags: ['audiences']
+
+    tables:
+      - name: scoring_api_fixed_lists
+        columns:
+          - name: list_id
+            tests:
+              - not_null
+          - name: wallet
+            tests:
+              - not_null
+              - test_starts_with_0x
+
+
+models:
+  - name: all_audiences
+    columns:
+      - name: audience_slug
+      - name: audience_type
+      - name: chain
+      - name: address
+        tests:
+          - not_null
+          - test_starts_with_0x
+
+  - name: all_audiences_top_nft_collections
+    tags: ['to_postgres', 'scoring_api']
+    tests:
+      - row_count:
+          name: macro
+          above: 1_000_000
+          config:
+            where: "audience_type='AUDIENCE'"
+      - row_count:
+          name: claimed
+          above: 10_000_000
+          config:
+            where: "audience_type='CLAIMED'"
+      - row_count:
+          name: fixed_lists
+          above: 1_000_000
+          config:
+            where: "audience_type='FIXED_LIST'"
+      - row_count:
+          name: analytics
+          above: 100_000
+          config:
+            where: "audience_type='ANALYTICS'"
+
+  - name: all_audiences_top_notable_collections
+    tags: ['to_postgres', 'scoring_api']
+    tests:
+      - row_count:
+          name: macro
+          above: 1_000
+          config:
+            where: "audience_type='AUDIENCE'"
+      - row_count:
+          name: claimed
+          above: 1_000_000
+          config:
+            where: "audience_type='CLAIMED'"
+      - row_count:
+          name: fixed_lists
+          above: 1_000
+          config:
+            where: "audience_type='FIXED_LIST'"
+      - row_count:
+          name: analytics
+          above: 100
+          config:
+            where: "audience_type='ANALYTICS'"
+
+  - name: single_claimed_audiences
+    tags: ['single_claim_audiences']
+    columns:
+      - name: wallet
+        tests:
+          - not_null
+          - test_starts_with_0x
+      - name: chain
+        tests:
+          - not_null
+      - name: token_address
+        tests:
+          - not_null
+          - test_starts_with_0x
+
+  - name: all_claimed_audiences
+    tags: ['all_claimed_audiences']

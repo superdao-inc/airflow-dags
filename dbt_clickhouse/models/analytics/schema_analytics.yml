@@ -1,0 +1,47 @@
+version: 2
+
+sources:
+  - name: analytics
+    schema: analytics
+    tags: ['analytics']
+
+    tables:
+      - name: wallet_last_events
+        columns:
+          - name: tracker_id
+          - name: address
+          - name: last_event
+          - name: last_event_timestamp
+          - name: source
+          - name: updated
+      - name: tracker_events_prod
+        columns:
+          - name: id
+          - name: type
+          - name: timestamp
+          - name: session_id
+          - name: anonymous_id
+          - name: campaign_id
+          - name: offer_id
+          - name: user_id
+          - name: user_wallet_address
+          - name: user_ip
+          - name: user_agent
+          - name: user_timezone
+          - name: user_locale
+          - name: page_utm_id
+          - name: page_utm_source
+          - name: page_utm_medium
+          - name: page_utm_campaign
+          - name: page_utm_term
+          - name: page_utm_content
+          - name: page_url
+          - name: page_path
+          - name: page_referrer
+          - name: tracker_id
+
+models:
+  - name: daily_events_count
+    tags: ['analytics']
+  - name: wallet_last_events
+    tags: ['analytics']

@@ -1,0 +1,48 @@
+version: 2
+
+sources:
+  - name: buf_raw_data_avalanche
+    schema: raw_data_avalanche
+    tags: ["buf_raw_data_avalanche"]
+
+    tables:
+      - name: buf_avalanche_etl_blocks
+        columns:
+          - name: number
+            tests:
+              - not_null
+
+      - name: buf_avalanche_etl_contracts
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+      - name: buf_avalanche_etl_logs
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_avalanche_etl_receipts
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_avalanche_etl_token_transfers
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_avalanche_etl_traces
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_avalanche_etl_transactions
+        columns:
+          - name: block_number
+            tests:
+              - not_null

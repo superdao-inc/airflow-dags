@@ -1,0 +1,45 @@
+version: 2
+
+sources:
+
+  - name: prices
+    schema: raw_data
+    tables:
+      - name: binance_prices
+        tags: ['prices']
+
+        columns:
+          - name: load_uuid
+            tests:
+              - not_null
+          - name: symbol_id
+            tests:
+              - not_null
+          - name: symbol_price
+            tests:
+              - not_null
+          - name: load_timest
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: "toDate('2023-03-29')"
+                  max_value: "today()+1"
+          - name: load_date
+
+models:
+
+  - name: last_prices
+    columns:
+      - name: symbol_id
+        tests:
+          - not_null
+          - unique
+      - name: price_usdt
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100*1000
+      - name: load_timest
+
+  - name: binance_symbol_map
+    materialized: 'ephemeral'

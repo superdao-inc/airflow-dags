@@ -1,0 +1,5 @@
+version: 2
+
+models:
+  - name: eth_usdt_price_dict
+    tags: ['dict', 'price']

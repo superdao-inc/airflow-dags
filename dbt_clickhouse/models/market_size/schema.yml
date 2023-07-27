@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: 'market_size_largest_nft_collections'
+    columns:
+      - name: token_address
+        tests:
+          - not_null
+          - test_starts_with_0x
+      - name: holders_count
+      - name: holders_with_balance_100_or_more
+      - name: holders_with_tx_count_greater_than_0

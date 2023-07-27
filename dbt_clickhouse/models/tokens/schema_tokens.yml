@@ -1,0 +1,88 @@
+version: 2
+
+models:
+  - name: eth_wallet_tokens
+    description: Token quantities for each address on Ethereum
+    tests:
+      - row_count:
+          above: 50*1000*1000
+    columns:
+      - name: wallet
+        description: wallet, primary key owner of token
+        tests:
+          - not_null:
+              tags: ['ci']
+      - name: token_address
+        description: token contract address
+        tests:
+          - not_null
+      - name: token_id
+        description: token ID
+        tests:
+          - not_null
+
+  - name: polygon_wallet_tokens
+    description: Token quantities for each address on Polygon
+    tests:
+      - row_count:
+          above: 150*1000*1000
+    columns:
+      - name: wallet
+        description: wallet, primary key owner of token
+        tests:
+          - not_null:
+              tags: ['ci']
+      - name: token_address
+        description: token contract address
+        tests:
+          - not_null
+      - name: token_id
+        description: token ID
+        tests:
+          - not_null
+
+  - name: eth_contracts_by_address
+    columns:
+      - name: address
+        tests:
+          - not_null
+      - name: is_erc20
+        tests:
+          - not_null
+      - name: is_erc721
+        tests:
+          - not_null
+    tests:
+      - row_count:
+          name: erc20
+          above: 1
+          config:
+            where: "is_erc20=true"
+      - row_count:
+          name: erc721
+          above: 1
+          config:
+            where: "is_erc721=true"
+
+  - name: polygon_contracts_by_address
+    columns:
+      - name: address
+        tests:
+          - not_null
+      - name: is_erc20
+        tests:
+          - not_null
+      - name: is_erc721
+        tests:
+          - not_null
+    tests:
+      - row_count:
+          name: erc20
+          above: 1
+          config:
+            where: "is_erc20=true"
+      - row_count:
+          name: erc721
+          above: 1
+          config:
+            where: "is_erc721=true"

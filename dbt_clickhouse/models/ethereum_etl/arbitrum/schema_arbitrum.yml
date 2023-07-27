@@ -1,0 +1,48 @@
+version: 2
+
+sources:
+  - name: buf_raw_data_arbitrum
+    schema: raw_data_arbitrum
+    tags: ["buf_raw_data_arbitrum"]
+
+    tables:
+      - name: buf_arbitrum_etl_blocks
+        columns:
+          - name: number
+            tests:
+              - not_null
+
+      - name: buf_arbitrum_etl_contracts
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+      - name: buf_arbitrum_etl_logs
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_arbitrum_etl_receipts
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_arbitrum_etl_token_transfers
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_arbitrum_etl_traces
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_arbitrum_etl_transactions
+        columns:
+          - name: block_number
+            tests:
+              - not_null

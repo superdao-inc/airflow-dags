@@ -1,0 +1,1063 @@
+version: 2
+
+sources:
+  - name: ethereum_raw_data
+    schema: ethereum_raw_data
+    tags: ["raw_data_ethereum", "raw_data_etl", "ethereum_raw_data"]
+      
+    tables:
+      - name: input_claimed_audiences
+      - name: buf_blocks
+        columns:
+          - name: number
+            tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_unique
+      - name: buf_contracts
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              combination_of_columns:
+                - address
+                - block_number
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_token_transfers
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              combination_of_columns:
+                - transaction_hash
+                - log_index
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_traces
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              combination_of_columns:
+                - trace_id
+                - block_number
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_transactions
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              combination_of_columns:
+                - hash
+                - block_hash
+                - transaction_index
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+
+  - name: raw_data_polygon
+    schema: raw_data_polygon
+    tags: ["raw_data_polygon", "raw_data_etl"]
+    
+    tables:
+      - name: input_claimed_audiences
+      - name: buf_blocks
+        columns:
+          - name: number
+            tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_unique
+      - name: buf_contracts
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              combination_of_columns:
+                - address
+                - block_number
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_token_transfers
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              combination_of_columns:
+                - transaction_hash
+                - log_index
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_traces
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              combination_of_columns:
+                - trace_id
+                - block_number
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_transactions
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              combination_of_columns:
+                - hash
+                - block_hash
+                - transaction_index
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+
+  - name: raw_data_snapshot
+    schema: raw_data_snapshot
+    tags: ["raw_data_snapshot"]
+
+    tables:
+      - name: votes
+      - name: spaces
+      - name: proposals
+
+
+  - name: eth_data
+    schema: eth_data
+    tables:
+      - name: attr_occurrences
+      - name: farcasters_wallets
+      - name: attr_wallet_usd_cap
+      - name: transactions_by_to_address
+      - name: transactions_by_from_address
+      - name: attr_nfts_count
+      - name: whitelist_contracts
+
+      - name: token_transfers_by_token
+        description: Token transfers by token address
+        columns:
+          - name: token_address
+            description: Address of token contract
+            tests:
+              - not_null:
+                  config:
+                    where: "block_number>=16*1000*1000"
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: from_address
+            description: Ethereum sender address
+            tests:
+              - not_null:
+                  config:
+                    where: "block_number>=16*1000*1000"
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: to_address
+            description: Ethereum receiver address
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: value
+            description: Amount token sent
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: transaction_hash
+            description: Hash of eth transaction
+            tests:
+              - not_null:
+                  config:
+                    where: "block_number>=16*1000*1000"
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: log_index
+            description: Index of tx
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: block_number
+            description: Int number of Ethereum block
+            tests:
+              - dbt_utils.relationships_where:
+                  # Все блоки из этой таблицы начиная с 16М есть в таблице блоков
+                  to: source('eth_data', 'blocks_by_number')
+                  field: number
+                  from_condition: block_number >= 16000000
+
+
+      - name: input_claimed_audiences
+        description: Dictionary on current claimed audiences
+
+
+      - name: blocks_by_number
+        tags: ['raw_data_main']
+        columns:
+          - name: number
+            tests:
+              - not_null
+              - test_all_section_of_numbers
+          - name: hash
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: miner
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: gas_used
+            tests:
+              - not_null
+          - name: timestamp
+            tests:
+              # Нет дат до запуска эфира
+              - dbt_utils.expression_is_true:
+                  expression: ">= toDate(2015-08-01)"
+          - name: base_fee_per_gas
+            tests:
+              # Колонка заполнена начиная с блока
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0"
+                  config:
+                    where: "number >= 12965000"
+
+      - name: contracts_by_address
+        tags: ['raw_data_main']
+        description: Table of contracts by token address
+        columns:
+          - name: address
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: is_erc20
+            tests:
+              - not_null
+          - name: is_erc721
+            tests:
+              - not_null
+
+      - name: contracts_by_address_manual
+        description: Table of contracts by token address tagged manually
+        columns:
+          - name: address
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: is_erc20
+            tests:
+              - not_null
+          - name: is_erc721
+            tests:
+              - not_null
+
+      - name: receipts_by_block
+        tags: ['raw_data_main']
+        description: ??
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  inclusive: false
+              - dbt_utils.relationships_where:
+                  # Все блоки из этой таблицы начиная с 16М есть в таблице блоков
+                  to: source('eth_data', 'blocks_by_number')
+                  field: number
+                  from_condition: block_number >= 16000000
+          - name: hash
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number > 16*1000*1000"
+              - dbt_utils.relationships_where:
+                  to: source('eth_data', 'transactions_by_block')
+                  field: hash
+                  from_condition: block_number >= 16000000
+                  config:
+                    where: "block_number > 16*1000*1000"
+          - name: cumulative_gas_used
+          - name: gas_used
+          - name: contract_address
+          - name: root
+          - name: status
+          - name: effective_gas_price
+
+      - name: transactions_by_block
+        tags: ['raw_data_main']
+        description: Table of transactions by block
+        columns:
+          - name: hash
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=16*1000*1000"
+              - dbt_utils.relationships_where:
+                  to: source('eth_data', 'receipts_by_block')
+                  field: hash
+                  from_condition: block_number >= 16000000
+                  config:
+                    where: "block_number > 16*1000*1000"
+          - name: transaction_index
+            tests:
+              - not_null
+          - name: from_address
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: to_address
+            tests:
+              - not_null
+          - name: value
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: gas_price
+          - name: receipt_gas_used
+          - name: block_number
+
+      - name: traces_by_block
+        tags: ['raw_data_main']
+        description: Table of traces by block
+        columns:
+          - name: transaction_hash
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number >= 16*1000*1000 AND block_number < 17*1000*1000"
+                    error_if: ">1000*1000"
+              - dbt_utils.relationships_where:
+                  # Все транзы из этой таблицы начиная с 16М есть в таблице блоков
+                  to: source('eth_data', 'transactions_by_block')
+                  field: hash
+                  from_condition: block_number >= 16000000
+          - name: from_address
+          - name: to_address
+          - name: value
+          - name: call_type
+          - name: status
+          - name: block_number
+            tests:
+              - not_null
+              - dbt_utils.relationships_where:
+                  # Все блоки из этой таблицы начиная с 16М есть в таблице блоков
+                  to: source('eth_data', 'blocks_by_number')
+                  field: number
+                  from_condition: block_number >= 16000000
+          - name: trace_id
+
+      - name: blacklisted_wallets_common
+        description: Clickhouse set of blacklisted wallets
+
+
+  - name: polygon_data
+    schema: polygon_data
+    tables:
+      - name: attr_occurrences
+      - name: farcasters_wallets
+      - name: attr_wallet_usd_cap
+      - name: transactions_by_to_address
+        tags: ['raw_data_main']
+      - name: transactions_by_from_address
+        tags: ['raw_data_main']
+      - name: whitelist_contracts
+
+      - name: token_transfers_by_token
+        tags: ['raw_data_main']
+        description: Token transfers by token address
+        columns:
+          - name: token_address
+            description: Address of token contract
+            tests:
+              - not_null:
+                  config:
+                    where: "block_number>=35*1000*1000"
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: from_address
+            description: Ethereum sender address
+            tests:
+              - not_null:
+                  config:
+                    where: "block_number>=35*1000*1000"
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: to_address
+            description: Ethereum receiver address
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: value
+            description: Amount token sent
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: transaction_hash
+            description: Hash of eth transaction
+            tests:
+              - not_null:
+                  config:
+                    where: "block_number>=35*1000*1000"
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: log_index
+            description: Index of tx
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: block_number
+            description: Int number of Ethereum block
+            tests:
+              - dbt_utils.relationships_where:
+                  # Все блоки из этой таблицы начиная с 16М есть в таблице блоков
+                  to: source('polygon_data', 'blocks_by_number')
+                  field: number
+                  from_condition: block_number >= 35*1000*1000
+
+      - name: contracts_by_address
+        tags: ['raw_data_main']
+        description: Table of contracts by token address
+        columns:
+          - name: address
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: is_erc20
+            tests:
+              - not_null
+          - name: is_erc721
+            tests:
+              - not_null
+
+      - name: contracts_by_address_manual
+        description: Table of contracts by token address tagged manually
+        columns:
+          - name: address
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: is_erc20
+            tests:
+              - not_null
+          - name: is_erc721
+            tests:
+              - not_null
+
+      - name: receipts_by_block
+        tags: ['raw_data_main']
+        description: ??
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  inclusive: false
+              - dbt_utils.relationships_where:
+                  # Все блоки из этой таблицы начиная с 16М есть в таблице блоков
+                  to: source('polygon_data', 'blocks_by_number')
+                  field: number
+                  from_condition: block_number >= 35*1000*1000
+          - name: hash
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number > 35*1000*1000"
+              - dbt_utils.relationships_where:
+                  to: source('polygon_data', 'transactions_by_block')
+                  field: hash
+                  from_condition: block_number >= 16000000
+                  config:
+                    where: "block_number > 35*1000*1000"
+          - name: cumulative_gas_used
+          - name: gas_used
+          - name: contract_address
+          - name: root
+          - name: status
+          - name: effective_gas_price
+
+      - name: blocks_by_number
+        tags: ['raw_data_main']
+        columns:
+          - name: number
+            tests:
+              - not_null
+              - test_all_section_of_numbers
+          - name: hash
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: miner
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: gas_used
+            tests:
+              - not_null
+          - name: timestamp
+            tests:
+              # Нет дат до запуска эфира
+              - dbt_utils.expression_is_true:
+                  expression: ">= toDate(2015-08-01)"
+          - name: base_fee_per_gas
+            tests:
+              # Колонка заполнена начиная с блока
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0"
+                  config:
+                    where: "number >= 12965000"
+
+      - name: transactions_by_block
+        tags: ['raw_data_main']
+        description: Table of transactions by block
+        columns:
+          - name: hash
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=35*1000*1000"
+              - dbt_utils.relationships_where:
+                  to: source('polygon_data', 'receipts_by_block')
+                  field: hash
+                  from_condition: block_number >= 35*1000*1000
+                  config:
+                    where: "block_number > 35*1000*1000"
+          - name: transaction_index
+            tests:
+              - not_null
+          - name: from_address
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: to_address
+            tests:
+              - not_null
+          - name: value
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: gas_price
+          - name: receipt_gas_used
+          - name: block_number
+
+      - name: input_claimed_audiences
+        description: Dictionary on current claimed audiences
+
+      - name: blacklisted_wallets_common
+        description: Clickhouse set of blacklisted wallets
+
+
+  - name: off_chain
+    tables:
+      - name: attr_twitter_username
+      - name: attr_twitter_followers_count
+      - name: attr_ens_name
+      - name: pg_ens_name
+      - name: superdao_users
+        description: Users data extracted from Superdao app DB
+        columns:
+          - name: id
+          - name: email
+          - name: address
+
+
+  - name: eth_data_derived
+    schema: eth_data
+    description: tables that are calculated by some DAG and need to be refactored later to become DBT models or other sources
+
+    tables:
+      - name: wallet_score
+        meta:
+          dag_id: dynamic_audience_***
+        columns:
+          - name: score_id
+          - name: wallet
+          - name: score
+          - name: updated
+
+      - name: claimed_audiences
+        columns:
+          - name: wallet
+          - name: slug
+          - name: tokenAddress
+
+      - name: transactions_by_from_address
+        columns:
+          - name: hash
+          - name: transaction_index
+          - name: from_address
+          - name: to_address
+          - name: value
+          - name: gas_price
+          - name: receipt_gas_used
+          - name: block_number
+
+      - name: eth_balances
+        description: Table to account ethereum balances by wallet
+        columns:
+          - name: address
+          - name: eth_balances
+            description: balance in eth-satoshis
+          - name: updated
+
+
+  - name: polygon_data_derived
+    schema: polygon_data
+    description: tables that are calculated by some DAG and need to be refactored later to become DBT models or other sources
+
+    tables:
+      - name: wallet_score
+        meta:
+          dag_id: dynamic_audience_***
+        columns:
+          - name: score_id
+          - name: wallet
+          - name: score
+          - name: updated
+
+      - name: claimed_audiences
+        columns:
+          - name: wallet
+          - name: slug
+          - name: tokenAddress
+
+      - name: transactions_by_from_address
+        columns:
+          - name: hash
+          - name: transaction_index
+          - name: from_address
+          - name: to_address
+          - name: value
+          - name: gas_price
+          - name: receipt_gas_used
+          - name: block_number
+
+      - name: transactions_by_to_address
+        columns:
+          - name: hash
+          - name: transaction_index
+          - name: from_address
+          - name: to_address
+          - name: value
+          - name: gas_price
+          - name: receipt_gas_used
+          - name: block_number
+
+########## NEW SCHEMA ##########
+  - name: ethereum_raw_data
+    schema: ethereum_raw_data
+    tables:
+      - name: token_transfers
+        description: Token transfers
+        columns:
+          - name: token_address
+            description: Address of token contract
+            tests:
+              - not_null:
+                  config:
+                    where: "block_number>=16*1000*1000"
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: from_address
+            description: Ethereum sender address
+            tests:
+              - not_null:
+                  config:
+                    where: "block_number>=16*1000*1000"
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: to_address
+            description: Ethereum receiver address
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: value
+            description: Amount token sent
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: transaction_hash
+            description: Hash of eth transaction
+            tests:
+              - not_null:
+                  config:
+                    where: "block_number>=16*1000*1000"
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: log_index
+            description: Index of tx
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: block_number
+            description: Int number of Ethereum block
+            tests:
+              - dbt_utils.relationships_where:
+                  # Все блоки из этой таблицы начиная с 16М есть в таблице блоков
+                  to: source('ethereum_raw_data', 'blocks')
+                  field: number
+                  from_condition: block_number >= 16000000
+
+
+      - name: blocks
+        tags: ['raw_data_main']
+        columns:
+          - name: number
+            tests:
+              - not_null
+              - test_all_section_of_numbers
+          - name: hash
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: miner
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: gas_used
+            tests:
+              - not_null
+          - name: timestamp
+            tests:
+              # Нет дат до запуска эфира
+              - dbt_utils.expression_is_true:
+                  expression: ">= toDate(2015-08-01)"
+          - name: base_fee_per_gas
+            tests:
+              # Колонка заполнена начиная с блока
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0"
+                  config:
+                    where: "number >= 12965000"
+
+
+      - name: contracts
+        tags: ['raw_data_main']
+        description: Table of contracts by token address
+        columns:
+          - name: address
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: is_erc20
+            tests:
+              - not_null
+          - name: is_erc721
+            tests:
+              - not_null
+
+
+      - name: transactions
+        tags: ['raw_data_main']
+        description: Table of transactions
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  inclusive: false
+              - dbt_utils.relationships_where:
+                  # Все блоки из этой таблицы начиная с 16М есть в таблице блоков
+                  to: source('ethereum_raw_data', 'blocks')
+                  field: number
+                  from_condition: block_number >= 16000000
+          - name: hash
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=16*1000*1000"
+
+          - name: transaction_index
+            tests:
+              - not_null
+          - name: from_address
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: to_address
+            tests:
+              - not_null
+          - name: value
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  config:
+                    where: "block_number>=16*1000*1000"
+          - name: gas_price
+          - name: block_number
+
+          - name: receipt_cumulative_gas_used
+          - name: receipt_gas_used
+          - name: receipt_contract_address
+          - name: receipt_root
+          - name: receipt_status
+          - name: receipt_effective_gas_price
+
+
+      - name: traces
+        tags: ['raw_data_main']
+        description: Table of traces
+        columns:
+          - name: transaction_hash
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number >= 16*1000*1000 AND block_number < 17*1000*1000"
+                    error_if: ">1000*1000"
+              - dbt_utils.relationships_where:
+                  # Все транзы из этой таблицы начиная с 16М есть в таблице блоков
+                  to: source('ethereum_raw_data', 'transactions')
+                  field: hash
+                  from_condition: block_number >= 16000000
+          - name: from_address
+          - name: to_address
+          - name: value
+          - name: call_type
+          - name: status
+          - name: block_number
+            tests:
+              - not_null
+              - dbt_utils.relationships_where:
+                  # Все блоки из этой таблицы начиная с 16М есть в таблице блоков
+                  to: source('ethereum_raw_data', 'blocks')
+                  field: number
+                  from_condition: block_number >= 16000000
+          - name: trace_id
+
+
+  - name: polygon_raw_data
+    schema: polygon_raw_data
+    tables:
+      - name: token_transfers
+        tags: ['raw_data_main']
+        description: Token transfers
+        columns:
+          - name: token_address
+            description: Address of token contract
+            tests:
+              - not_null:
+                  config:
+                    where: "block_number>=35*1000*1000"
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: from_address
+            description: Ethereum sender address
+            tests:
+              - not_null:
+                  config:
+                    where: "block_number>=35*1000*1000"
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: to_address
+            description: Ethereum receiver address
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: value
+            description: Amount token sent
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: transaction_hash
+            description: Hash of eth transaction
+            tests:
+              - not_null:
+                  config:
+                    where: "block_number>=35*1000*1000"
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: log_index
+            description: Index of tx
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: block_number
+            description: Int number of Ethereum block
+            tests:
+              - dbt_utils.relationships_where:
+                  # Все блоки из этой таблицы начиная с 16М есть в таблице блоков
+                  to: source('polygon_raw_data', 'blocks')
+                  field: number
+                  from_condition: block_number >= 35*1000*1000
+
+
+      - name: blocks
+        tags: ['raw_data_main']
+        columns:
+          - name: number
+            tests:
+              - not_null
+              - test_all_section_of_numbers
+          - name: hash
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: miner
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: gas_used
+            tests:
+              - not_null
+          - name: timestamp
+            tests:
+              # Нет дат до запуска эфира
+              - dbt_utils.expression_is_true:
+                  expression: ">= toDate(2015-08-01)"
+          - name: base_fee_per_gas
+            tests:
+              # Колонка заполнена начиная с блока
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0"
+                  config:
+                    where: "number >= 12965000"
+
+
+      - name: contracts
+        tags: ['raw_data_main']
+        description: Table of contracts by token address
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  inclusive: false
+              - dbt_utils.relationships_where:
+                  # Все блоки из этой таблицы начиная с 16М есть в таблице блоков
+                  to: source('polygon_raw_data', 'blocks')
+                  field: number
+                  from_condition: block_number >= 35*1000*1000
+          - name: address
+            tests:
+              - not_null
+              - test_starts_with_0x
+          - name: is_erc20
+            tests:
+              - not_null
+          - name: is_erc721
+            tests:
+              - not_null
+
+
+      - name: transactions
+        tags: ['raw_data_main']
+        description: Table of transactions
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  inclusive: false
+              - dbt_utils.relationships_where:
+                  # Все блоки из этой таблицы начиная с 16М есть в таблице блоков
+                  to: source('polygon_raw_data', 'blocks')
+                  field: number
+                  from_condition: block_number >= 35*1000*1000
+
+          - name: hash
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: transaction_index
+            tests:
+              - not_null
+          - name: from_address
+            tests:
+              - not_null
+              - test_starts_with_0x:
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: to_address
+            tests:
+              - not_null
+          - name: value
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  config:
+                    where: "block_number>=35*1000*1000"
+          - name: gas_price
+          - name: receipt_gas_used
+          - name: block_number
+
+          - name: receipt_cumulative_gas_used
+          - name: receipt_gas_used
+          - name: receipt_contract_address
+          - name: receipt_root
+          - name: receipt_status
+          - name: receipt_effective_gas_price
+

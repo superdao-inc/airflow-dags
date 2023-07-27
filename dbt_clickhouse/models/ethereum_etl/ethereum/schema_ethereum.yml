@@ -1,0 +1,72 @@
+version: 2
+
+sources:
+  - name: buf_raw_data_ethereum
+    schema: raw_data_ethereum
+    tags: ["buf_raw_data_ethereum"]
+
+    tables:
+      - name: buf_ethereum_etl_blocks
+        columns:
+          - name: number
+            tests:
+              - not_null
+
+      - name: buf_ethereum_etl_contracts
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+      - name: buf_ethereum_etl_logs
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_ethereum_etl_receipts
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_ethereum_etl_token_transfers
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_ethereum_etl_traces
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+      - name: buf_ethereum_etl_transactions
+        columns:
+          - name: block_number
+            tests:
+              - not_null
+
+
+models:
+  - name: ethereum_etl_blocks
+    config:
+      tags: ["raw_data_ethereum", "ethereum_etl"]
+  - name: ethereum_etl_contracts
+    config:
+      tags: ["raw_data_ethereum", "ethereum_etl"]
+  - name: ethereum_etl_logs
+    config:
+      tags: ["raw_data_ethereum", "ethereum_etl"]
+  - name: ethereum_etl_receipts
+    config:
+      tags: ["raw_data_ethereum", "ethereum_etl"]
+  - name: ethereum_etl_token_transfers
+    config:
+      tags: ["raw_data_ethereum", "ethereum_etl"]
+  - name: ethereum_etl_traces
+    config:
+      tags: ["raw_data_ethereum", "ethereum_etl"]
+  - name: ethereum_etl_transactions
+    config:
+      tags: ["raw_data_ethereum", "ethereum_etl"]
